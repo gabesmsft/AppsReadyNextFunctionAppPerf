@@ -17,8 +17,12 @@ namespace DevBootcampPrecompiledFunctions
 {
     public static class FakeEventHubTrigger1
     {
+        static string url = "https://gabefakeexternalservicerandomperf.azurewebsites.net";
+        static Uri baseAddress = new Uri(url);
+        static readonly HttpClient client = new HttpClient() { BaseAddress = baseAddress };
+
         [FunctionName("FakeEventHubTrigger1")]
-        public static async Task Run([EventHubTrigger("fakeeh", Connection = "MyEventHubConn", ConsumerGroup = "consumergroup2")] EventData[] events, ILogger log)
+        public static async Task Run([EventHubTrigger("fakeeh", Connection = "MyEventHubConn", ConsumerGroup = "consumergroup2")] EventData[] events, ILogger log, ExecutionContext context)
         {
             var exceptions = new List<Exception>();
 
@@ -29,7 +33,8 @@ namespace DevBootcampPrecompiledFunctions
                 try
                 {
                     string messageBody = Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count);
-                    
+
+                    /*
                     var sqlConn = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_fakeSqlConn");
                     using (SqlConnection conn = new SqlConnection(sqlConn))
                     {
@@ -44,28 +49,58 @@ namespace DevBootcampPrecompiledFunctions
                             var rows = await cmd.ExecuteNonQueryAsync();
                         }
                     }
+                    */
 
-                    
+                    var FunctionInvocationId = context.InvocationId;
+                    Stopwatch stopWatch = new Stopwatch();
+                    stopWatch.Start();
                     FakePerfClass.MysteryMethod1(messageBody);
-                    
+                    stopWatch.Stop();
+                    var ms = stopWatch.ElapsedMilliseconds;
+                    string method;
+                    if (ms > 1000)
+                    {
+                        method = "MysteryMethod1";
+                        //log.LogInformation($"Method 1 took {stopWatch.ElapsedMilliseconds} ms during FunctionInvocationId {FunctionInvocationId}");
+                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
+                    }
+                    stopWatch.Reset();
+
+                    stopWatch.Start();
                     FakePerfClass.MysteryMethod2(messageBody);
+                    stopWatch.Stop();
+                    ms = stopWatch.ElapsedMilliseconds;
 
+                    if (ms > 1000)
+                    {
+                        method = "MysteryMethod2";
+                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
+                    }
+                    stopWatch.Reset();
+
+                    stopWatch.Start();
                     FakePerfClass.MysteryMethod3(messageBody);
+                    stopWatch.Stop();
 
-                    string url = "https://devbootcampfakeexternalservice.azurewebsites.net";
-                        var baseAddress = new Uri(url);
-                        using (var client = new HttpClient() { BaseAddress = baseAddress })
-                        {
-                            var message = new HttpRequestMessage(HttpMethod.Get, "/api/fake");
-                            message.Headers.Add("FakeHeader2", "messageBody");
-                            //var result = await client.SendAsync(message);
-                            var result = client.SendAsync(message).Result;
-                            string content = await result.Content.ReadAsStringAsync();
+                    ms = stopWatch.ElapsedMilliseconds;
 
-                            //var result = await client.GetAsync("/api/fake");
-                        }
-                        
+                    if (ms > 1000)
+                    {
+                        method = "MysteryMethod3";
+                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId); ;
+                    }
+                    stopWatch.Reset();
 
+                    var message = new HttpRequestMessage(HttpMethod.Get, "/api/fake");
+                    message.Headers.Add("FakeHeader2", "messageBody");
+                    var result = await client.SendAsync(message);
+                    
+                    //var result = client.SendAsync(message).Result;
+
+                    string content = await result.Content.ReadAsStringAsync();
+
+                    //var result = await client.GetAsync("/api/fake");
+                  
                     // Replace these two lines with your processing logic.
                     log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");
                     await Task.Yield();
