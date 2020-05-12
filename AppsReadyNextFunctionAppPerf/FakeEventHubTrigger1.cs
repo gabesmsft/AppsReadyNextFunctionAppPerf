@@ -22,7 +22,7 @@ namespace DevBootcampPrecompiledFunctions
         static readonly HttpClient client = new HttpClient() { BaseAddress = baseAddress };
 
         [FunctionName("FakeEventHubTrigger1")]
-        public static async Task Run([EventHubTrigger("fakeeh", Connection = "MyEventHubConn", ConsumerGroup = "consumergroup2")] EventData[] events, ILogger log, ExecutionContext context)
+        public static async Task Run([EventHubTrigger("fakeeh1", Connection = "MyEventHubConn", ConsumerGroup = "consumergroup2")] EventData[] events, ILogger log, ExecutionContext context)
         {
             var exceptions = new List<Exception>();
 
@@ -74,7 +74,11 @@ namespace DevBootcampPrecompiledFunctions
                     if (ms > 1000)
                     {
                         method = "MysteryMethod2";
+                        //structured logging:
                         log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
+
+                        //unstructured logging (bad, not very useful for sorting data):
+                        log.LogInformation($"Method 2 took {stopWatch.ElapsedMilliseconds} ms during FunctionInvocationId {FunctionInvocationId}");
                     }
                     stopWatch.Reset();
 
