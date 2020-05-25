@@ -12,17 +12,26 @@ using System.Data.SqlClient;
 using System.Data;
 using FakePerfClassLibrary;
 using System.Diagnostics;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.DataContracts;
 
 namespace DevBootcampPrecompiledFunctions
 {
-    public static class FakeEventHubTrigger1
+    public class FakeEventHubTrigger1
     {
         static string url = "https://gabefakeexternalservicerandomperf.azurewebsites.net";
         static Uri baseAddress = new Uri(url);
         static readonly HttpClient client = new HttpClient() { BaseAddress = baseAddress };
 
+        private readonly TelemetryClient telemetryClient;
+        public FakeEventHubTrigger1(TelemetryConfiguration telemetryConfiguration)
+        {
+            this.telemetryClient = new TelemetryClient(telemetryConfiguration);
+        }
+
         [FunctionName("FakeEventHubTrigger1")]
-        public static async Task Run([EventHubTrigger("fakeeh1", Connection = "MyEventHubConn", ConsumerGroup = "consumergroup2")] EventData[] events, ILogger log, ExecutionContext context)
+        public async Task Run([EventHubTrigger("fakeeh1", Connection = "MyEventHubConn", ConsumerGroup = "consumergroup2")] EventData[] events, ILogger log, ExecutionContext context)
         {
             var exceptions = new List<Exception>();
 
@@ -33,31 +42,17 @@ namespace DevBootcampPrecompiledFunctions
                 try
                 {
                     string messageBody = Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count);
-
-                    /*
-                    var sqlConn = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_fakeSqlConn");
-                    using (SqlConnection conn = new SqlConnection(sqlConn))
-                    {
-                        conn.Open();
-
-                        var query = "INSERT INTO dbo.FakeTable1 (Message) VALUES (@Message)";
-
-                        using (SqlCommand cmd = new SqlCommand(query, conn))
-                        {
-                            cmd.Parameters.Add("@Message", SqlDbType.NVarChar, 250).Value = messageBody;
-                            // Execute the command and log the # rows affected.
-                            var rows = await cmd.ExecuteNonQueryAsync();
-                        }
-                    }
-                    */
-
+                    
                     var FunctionInvocationId = context.InvocationId;
                     Stopwatch stopWatch = new Stopwatch();
+
                     stopWatch.Start();
                     FakePerfClass.MysteryMethod1(messageBody);
                     stopWatch.Stop();
                     var ms = stopWatch.ElapsedMilliseconds;
                     string method;
+
+                    
                     if (ms > 1000)
                     {
                         method = "MysteryMethod1";
@@ -75,10 +70,16 @@ namespace DevBootcampPrecompiledFunctions
                     {
                         method = "MysteryMethod2";
                         //structured logging:
-                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
+                        //log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
 
                         //unstructured logging (bad, not very useful for sorting data):
-                        log.LogInformation($"Method 2 took {stopWatch.ElapsedMilliseconds} ms during FunctionInvocationId {FunctionInvocationId}");
+                        //log.LogInformation($"Method 2 took {stopWatch.ElapsedMilliseconds} ms during FunctionInvocationId {FunctionInvocationId}");
+
+                        var telemetry = new TraceTelemetry("Slow Method Detected", SeverityLevel.Warning);
+                        telemetry.Properties.Add("SlowMethodtel", method);
+                        telemetry.Properties.Add("Milliseconds", ms.ToString());
+                        telemetry.Properties.Add("{FunctionInvocationId", FunctionInvocationId.ToString());
+                        telemetryClient.TrackTrace(telemetry);
                     }
                     stopWatch.Reset();
 
@@ -94,16 +95,35 @@ namespace DevBootcampPrecompiledFunctions
                         log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId); ;
                     }
                     stopWatch.Reset();
+                    
+                    /*
+                    //Here is an example of how to track the time taken for an async call.
+                    //You can't simply track the time taken on an awaited method, so we will use Task.WhenAll to wait for the list of tasks to complete and track the time taken for these tasks to complete.
+                    //In this case, we are just waiting on one task (the asynchronous MysteryMethod4).
+                     
+                    stopWatch.Start();
+                    List<Task> list = new List<Task>();
+                    list.Add(FakePerfClass.MysteryMethod4(messageBody));
+                    await Task.WhenAll(list);
+                    stopWatch.Stop();
 
+                    ms = stopWatch.ElapsedMilliseconds;
+
+                    if (ms > 1000)
+                    {
+                        method = "MysteryMethod4";
+                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId); ;
+                    }
+                    stopWatch.Reset();
+
+                    */
+
+                    // We are making an HTTP request to an external API, to demonstrate how this automatically gets logged to the dependencies table in App Insights
                     var message = new HttpRequestMessage(HttpMethod.Get, "/api/fake");
                     message.Headers.Add("FakeHeader2", "messageBody");
                     var result = await client.SendAsync(message);
                     
-                    //var result = client.SendAsync(message).Result;
-
                     string content = await result.Content.ReadAsStringAsync();
-
-                    //var result = await client.GetAsync("/api/fake");
                   
                     // Replace these two lines with your processing logic.
                     log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");

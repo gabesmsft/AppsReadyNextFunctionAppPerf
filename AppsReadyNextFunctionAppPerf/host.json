@@ -1,6 +1,11 @@
 {
   "version": "2.0",
   "logging": {
+    "fileLoggingMode": "debugOnly",
+    "logLevel": {
+      "DevBootcampPrecompiledFunctions.FakeEventHubTrigger1": "Trace",
+      "default": "Information"
+    },
     "applicationInsights": {
       "samplingExcludedTypes": "Request",
       "samplingSettings": {
@@ -12,7 +17,7 @@
     "eventHubs": {
       "batchCheckpointFrequency": 5,
       "eventProcessorOptions": {
-        "maxBatchSize": 10,
+        "maxBatchSize": 100,
         "prefetchCount": 20
       }
     }
