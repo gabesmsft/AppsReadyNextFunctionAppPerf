@@ -263,9 +263,9 @@ paket-files/
 __pycache__/
 *.pyc
 
-AppsReadyNextFunctionAppPerf/Properties/
+*/Properties/
+!AppsReadyNextFunctionAppPerf/bin\Release\netcoreapp2.1\bin\AppsReadyNextFunctionAppPerf.dll
+!AppsReadyNextFunctionAppPerf/bin\Debug\netcoreapp2.1\bin\AppsReadyNextFunctionAppPerf.dll
 */bin/
-!*/bin\Release\netcoreapp2.1\bin\AppsReadyNextFunctionAppPerf.dll
-!*/bin\Debug\netcoreapp2.1\bin\AppsReadyNextFunctionAppPerf.dll
 */obj/
 .vs
