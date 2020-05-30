@@ -266,6 +266,6 @@ __pycache__/
 */Properties/
 !AppsReadyNextFunctionAppPerf/bin/Release/netcoreapp2.1/bin/AppsReadyNextFunctionAppPerf.dll
 !AppsReadyNextFunctionAppPerf/bin/Debug/netcoreapp2.1/bin/AppsReadyNextFunctionAppPerf.dll
-*/bin/
+AppsReadyNextFunctionAppPerf/bin/
 */obj/
 .vs
