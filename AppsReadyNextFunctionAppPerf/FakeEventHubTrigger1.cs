@@ -70,13 +70,15 @@ namespace DevBootcampPrecompiledFunctions
                     {
                         method = "MysteryMethod2";
                         //structured logging:
-                        //log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
+                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
 
                         //unstructured logging (bad, not very useful for sorting data):
                         //log.LogInformation($"Method 2 took {stopWatch.ElapsedMilliseconds} ms during FunctionInvocationId {FunctionInvocationId}");
 
+                        //here is how to use App Insights SDK to log comparably to the above ILogger example:
+
                         var telemetry = new TraceTelemetry("Slow Method Detected", SeverityLevel.Warning);
-                        telemetry.Properties.Add("SlowMethodtel", method);
+                        telemetry.Properties.Add("SlowMethod", method);
                         telemetry.Properties.Add("Milliseconds", ms.ToString());
                         telemetry.Properties.Add("{FunctionInvocationId", FunctionInvocationId.ToString());
                         telemetryClient.TrackTrace(telemetry);
