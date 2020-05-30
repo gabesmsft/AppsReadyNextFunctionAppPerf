@@ -4,9 +4,6 @@
 # Azure Functions localsettings file
 local.settings.json
 
-!AppsReadyNextFunctionAppPerf/bin/Release/netcoreapp2.1/bin/FakePerfClassLibrary.dll
-!AppsReadyNextFunctionAppPerf/bin/Debug/netcoreapp2.1/bin/FakePerfClassLibrary.dll
-
 # User-specific files
 *.suo
 *.user
@@ -267,6 +264,4 @@ __pycache__/
 *.pyc
 
 */Properties/
-#AppsReadyNextFunctionAppPerf/bin
-*/obj/
 .vs
