@@ -69,18 +69,18 @@ namespace DevBootcampPrecompiledFunctions
                     if (ms > 1000)
                     {
                         method = "MysteryMethod2";
-                        //structured logging:
-                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
+                        //structured logging via Ilogger:
+                        log.LogInformation("ILog-SlowMethod={method}, ILog-Milliseconds={ms},  ILog-FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
 
                         //unstructured logging (bad, not very useful for sorting data):
-                        //log.LogInformation($"Method 2 took {stopWatch.ElapsedMilliseconds} ms during FunctionInvocationId {FunctionInvocationId}");
+                        log.LogInformation($"Method 2 took {stopWatch.ElapsedMilliseconds} ms during FunctionInvocationId {FunctionInvocationId}");
 
-                        //here is how to use App Insights SDK to log comparably to the above ILogger example:
+                        //here is how to use App Insights SDK to log comparably to the above structured ILogger example:
 
-                        var telemetry = new TraceTelemetry("Slow Method Detected", SeverityLevel.Warning);
-                        telemetry.Properties.Add("SlowMethod", method);
-                        telemetry.Properties.Add("Milliseconds", ms.ToString());
-                        telemetry.Properties.Add("{FunctionInvocationId", FunctionInvocationId.ToString());
+                        var telemetry = new TraceTelemetry("AISDK-Slow Method Detected", SeverityLevel.Warning);
+                        telemetry.Properties.Add("AISDK-SlowMethod", method);
+                        telemetry.Properties.Add("AISDK-Milliseconds", ms.ToString());
+                        telemetry.Properties.Add("AISDK-FunctionInvocationId", FunctionInvocationId.ToString());
                         telemetryClient.TrackTrace(telemetry);
                     }
                     stopWatch.Reset();
@@ -97,28 +97,24 @@ namespace DevBootcampPrecompiledFunctions
                         log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId); ;
                     }
                     stopWatch.Reset();
+
+                    //App Insights SDK has built-in functionality for tracking time taken on async calls, using StartOperation/StopOperation.
+                    //Here is an example of how to do this.
+                    // StartOperation will automatically be stopped when disposed, so don't need to call StopOperation when wrapped in using block
+
                     
-                    /*
-                    //Here is an example of how to track the time taken for an async call.
-                    //You can't simply track the time taken on an awaited method, so we will use Task.WhenAll to wait for the list of tasks to complete and track the time taken for these tasks to complete.
-                    //In this case, we are just waiting on one task (the asynchronous MysteryMethod4).
-                     
-                    stopWatch.Start();
-                    List<Task> list = new List<Task>();
-                    list.Add(FakePerfClass.MysteryMethod4(messageBody));
-                    await Task.WhenAll(list);
-                    stopWatch.Stop();
-
-                    ms = stopWatch.ElapsedMilliseconds;
-
-                    if (ms > 1000)
+                    using (var operation = telemetryClient.StartOperation<DependencyTelemetry>("MysteryMethod4 tag"))
                     {
-                        method = "MysteryMethod4";
-                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId); ;
+                        try
+                        {
+                            var myTask = await FakePerfClass.MysteryMethod4(messageBody);
+                        }
+                        catch (Exception ex)
+                        {
+                        }
                     }
-                    stopWatch.Reset();
+                    
 
-                    */
 
                     // We are making an HTTP request to an external API, to demonstrate how this automatically gets logged to the dependencies table in App Insights
                     var message = new HttpRequestMessage(HttpMethod.Get, "/api/fake");
