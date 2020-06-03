@@ -57,7 +57,7 @@ namespace DevBootcampPrecompiledFunctions
                     {
                         method = "MysteryMethod1";
                         //log.LogInformation($"Method 1 took {stopWatch.ElapsedMilliseconds} ms during FunctionInvocationId {FunctionInvocationId}");
-                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
+                        log.LogInformation("ILog-SlowMethod={method}, ILog-Milliseconds={ms},  ILog-FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
                     }
                     stopWatch.Reset();
 
@@ -94,7 +94,7 @@ namespace DevBootcampPrecompiledFunctions
                     if (ms > 1000)
                     {
                         method = "MysteryMethod3";
-                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
+                        log.LogInformation("ILog-SlowMethod={method}, ILog-Milliseconds={ms}, ILog-FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
                     }
                     stopWatch.Reset();
 
@@ -102,8 +102,8 @@ namespace DevBootcampPrecompiledFunctions
                     //Here is an example of how to do this.
                     // StartOperation will automatically be stopped when disposed, so don't need to call StopOperation when wrapped in using block
 
-                    /*
-                    using (var operation = telemetryClient.StartOperation<DependencyTelemetry>( "MysteryMethod4", FunctionInvocationId.ToString()))
+
+                    using (var operation = telemetryClient.StartOperation<DependencyTelemetry>("MysteryMethod4", FunctionInvocationId.ToString()))
                     {
                         int TaskIntReturned = 0;
                         try
@@ -127,6 +127,23 @@ namespace DevBootcampPrecompiledFunctions
                             telemetryClient.TrackTrace(telemetryAsyncExample);
                         }
                     }
+
+                    //Another potential way to get time taken on async calls.
+                    /* 
+                    stopWatch.Start();
+                    List<Task<int>> list = new List<Task<int>>();
+                    list.Add(FakePerfClass.MysteryMethod4(messageBody));
+                    int[] results = await Task.WhenAll(list);
+                    stopWatch.Stop();
+
+                    ms = stopWatch.ElapsedMilliseconds;
+
+                    //TaskIntReturned happens to be the duration of the call, for the sake of this demo.
+                    //We are only logging this to demonstrate that App Insights StartOperation can help track the time of async calls. 
+                    //In a real-world example, we wouldn't log this.
+                    log.LogInformation("ILog-SlowMethod={method}, ILog-Milliseconds={ms}, ILog-TaskIntReturned={TaskIntReturned}", "MysteryMethod4", ms, results[0]);
+
+                    stopWatch.Reset();
                     */
 
                     // We are making an HTTP request to an external API, to demonstrate how this automatically gets logged to the dependencies table in App Insights
