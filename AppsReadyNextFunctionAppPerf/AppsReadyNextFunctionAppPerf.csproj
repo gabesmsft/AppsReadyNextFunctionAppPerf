@@ -11,7 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FakePerfClassLibrary">
-      <HintPath>..\..\FakePerfClassLibrary\FakePerfClassLibrary\bin\Debug\netcoreapp2.1\FakePerfClassLibrary.dll</HintPath>
+      <HintPath>..\..\FakePerfClassLibrary\FakePerfClassLibrary\bin\Release\netcoreapp2.1\FakePerfClassLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

@@ -42,7 +42,7 @@ namespace DevBootcampPrecompiledFunctions
                 try
                 {
                     string messageBody = Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count);
-                    
+
                     var FunctionInvocationId = context.InvocationId;
                     Stopwatch stopWatch = new Stopwatch();
 
@@ -52,7 +52,7 @@ namespace DevBootcampPrecompiledFunctions
                     var ms = stopWatch.ElapsedMilliseconds;
                     string method;
 
-                    
+
                     if (ms > 1000)
                     {
                         method = "MysteryMethod1";
@@ -94,7 +94,7 @@ namespace DevBootcampPrecompiledFunctions
                     if (ms > 1000)
                     {
                         method = "MysteryMethod3";
-                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId); ;
+                        log.LogInformation("SlowMethod={method}, Milliseconds={ms},  FunctionInvocationId={FunctionInvocationId}", method, ms, FunctionInvocationId);
                     }
                     stopWatch.Reset();
 
@@ -102,27 +102,40 @@ namespace DevBootcampPrecompiledFunctions
                     //Here is an example of how to do this.
                     // StartOperation will automatically be stopped when disposed, so don't need to call StopOperation when wrapped in using block
 
-                    
-                    using (var operation = telemetryClient.StartOperation<DependencyTelemetry>("MysteryMethod4 tag"))
+                    /*
+                    using (var operation = telemetryClient.StartOperation<DependencyTelemetry>( "MysteryMethod4", FunctionInvocationId.ToString()))
                     {
+                        int TaskIntReturned = 0;
                         try
                         {
-                            var myTask = await FakePerfClass.MysteryMethod4(messageBody);
+                            TaskIntReturned = await FakePerfClass.MysteryMethod4(messageBody);
                         }
                         catch (Exception ex)
                         {
+                            telemetryClient.TrackException(ex);
+                        }
+                        finally
+                        {
+                            var telemetryAsyncExample = new TraceTelemetry("AISDK-Slow Async Method Detected", SeverityLevel.Warning);
+                            telemetryAsyncExample.Properties.Add("AISDK-SlowMethodAsync", "MysteryMethod4");
+                            telemetryAsyncExample.Properties.Add("AISDK-FunctionInvocationId", FunctionInvocationId.ToString());
+
+                            //TaskIntReturned happens to be the duration of the call, for the sake of this demo.
+                            //We are only logging this to demonstrate that App Insights StartOperation can help track the time of async calls. 
+                            //In a real-world example, we wouldn't log this.
+                            telemetryAsyncExample.Properties.Add("AISDK-TaskIntReturned", TaskIntReturned.ToString());
+                            telemetryClient.TrackTrace(telemetryAsyncExample);
                         }
                     }
-                    
-
+                    */
 
                     // We are making an HTTP request to an external API, to demonstrate how this automatically gets logged to the dependencies table in App Insights
                     var message = new HttpRequestMessage(HttpMethod.Get, "/api/fake");
                     message.Headers.Add("FakeHeader2", "messageBody");
                     var result = await client.SendAsync(message);
-                    
+
                     string content = await result.Content.ReadAsStringAsync();
-                  
+
                     // Replace these two lines with your processing logic.
                     log.LogInformation($"C# Event Hub trigger function processed a message: {messageBody}");
                     await Task.Yield();
@@ -145,6 +158,5 @@ namespace DevBootcampPrecompiledFunctions
             if (exceptions.Count == 1)
                 throw exceptions.Single();
         }
-
     }
 }
