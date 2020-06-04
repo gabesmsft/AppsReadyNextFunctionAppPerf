@@ -20,7 +20,7 @@ namespace DevBootcampPrecompiledFunctions
 {
     public class FakeEventHubTrigger1
     {
-        static string url = "https://gabefakeexternalservicerandomperf.azurewebsites.net";
+        static string url = "https://REPLACEWITHYOURSITENAME.azurewebsites.net";
         static Uri baseAddress = new Uri(url);
         static readonly HttpClient client = new HttpClient() { BaseAddress = baseAddress };
 
