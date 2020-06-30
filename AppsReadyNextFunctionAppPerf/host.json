@@ -3,7 +3,7 @@
   "logging": {
     "fileLoggingMode": "debugOnly",
     "logLevel": {
-      "DevBootcampPrecompiledFunctions.FakeEventHubTrigger1": "Trace",
+      "Functions.FakeEventHubTrigger1": "Trace",
       "default": "Information"
     },
     "applicationInsights": {

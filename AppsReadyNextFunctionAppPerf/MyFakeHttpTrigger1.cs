@@ -17,7 +17,7 @@ namespace DevBootcampPrecompiledFunctions
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            throw new System.IO.InvalidDataException("invalid data");
+            //throw new System.IO.InvalidDataException("invalid data");
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             return (ActionResult)new OkObjectResult($"Well, at least it didn't return an HTTP error");
